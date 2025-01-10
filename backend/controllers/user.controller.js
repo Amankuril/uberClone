@@ -16,8 +16,8 @@ module.exports.registerUser = async (req, res) => {
 
     const findUser = await userModel.findOne({ email });
 
-    if(findUser){
-       return res.status(400).json("user already exists");
+    if (findUser) {
+        return res.status(400).json({ message: "user already exists" });
     }
 
     const hashedPassword = await userModel.hashPassword(password);
@@ -40,7 +40,30 @@ module.exports.registerUser = async (req, res) => {
 }
 
 module.exports.loginUser = async (req, res) => {
-    res.send("login");
+    const errors = validationResult(req);
+    if (!errors.array()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, password } = req.body;
+
+    const user = await userModel.findOne({ email }).select("+password");
+
+    if (!user) {
+        return res.status(401).json({ message: "invalid email or password" });
+    }
+
+    const isMatch = await user.comparePassword(password);
+
+    if (!isMatch) {
+        res.status(401).json({ message: "invalid email or password" });
+    }
+
+    const token = await user.generateAuthToken();
+
+    res.status(200).json({ token, user });
+
+
 }
 
 module.exports.logoutUser = async (req, res) => {

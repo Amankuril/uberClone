@@ -66,7 +66,6 @@ module.exports.loginUser = async (req, res) => {
 
     res.status(200).json({ token, user });
 
-
 }
 
 module.exports.logoutUser = async (req, res) => {
